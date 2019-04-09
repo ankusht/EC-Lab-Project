@@ -9,11 +9,15 @@ int set=8;
 int cge=9;   
 int mod=10; 
 int off=0;
+int hh = 0;
+int mm = 0;
+char hh1 = '#', hh2 = '#', mm1 = '#', mm2 = '#';
 #define buz 11 
 int Hor,Min,Sec; 
 ///////////////////////////////////////Function to adjust the time//////////////////////////////////
 void time()                             
-{
+{ 
+    
     int tmp=1,mins=0,hors=0,secs=0;
     while(tmp==1)
     {
@@ -114,7 +118,7 @@ void TimeCheck()
   {
     tem[i]=EEPROM.read(i);
   }
-  if(Hor == tem[11] && Min == tem[12] && off==1) 
+  if(Hor == tem[11] && Min == tem[12] && off==1 || (Hor == hh && Min == mm)) 
   {
    add=11;
    Buz();
@@ -130,6 +134,7 @@ void TimeCheck()
 ////////////////////////////////////////////////////////////setup///////////////////////////
 void setup()
 {
+ Serial.begin(9600);  
  Wire.begin();
  RTC.begin();
  lcd.begin(16,2);
@@ -142,7 +147,6 @@ void setup()
  digitalWrite(cge, HIGH);
  
    lcd.setCursor(0,0);
-   lcd.print("ELECTRONICS HUB");
    lcd.setCursor(0,1);
    lcd.print("  Alarm Clock  ");
    delay(2000);
@@ -154,7 +158,9 @@ void setup()
 }
 ////////////////////////////////////////////////////////////loop/////////////////////////////////////
 void loop()
-{
+{ 
+   read_data();
+//   Serial.println(digitalRead(mod));
    DateTime now = RTC.now();
    if(digitalRead(mod) == 0)      
    { 
@@ -216,4 +222,52 @@ void current()
   lcd.print(Min);
   lcd.print(":");
   lcd.print(Sec);
+}
+
+void read_data()
+{
+  if(Serial.available() > 0)
+  {
+      char data = Serial.read();
+    if(data >= '0' && data <= '9')
+    {
+      if(hh1 == '#')
+      {
+        hh1 = data;
+      }
+      else if(hh2 == '#')
+      {
+        hh2 = data;
+      }
+      else if(mm1 == '#')
+      {
+        mm1 = data;
+      }
+      else if(mm2 == '#')
+      {
+        mm2 = data;
+      }
+      if(hh1 != '#' && hh2 != '#' && mm1 != '#' && mm2 != '#')
+      {
+        hh = (hh1-'0')*10 + (hh2-'0');
+        mm = (mm1-'0')*10 + (mm2-'0');
+        Serial.print("hh1 ");
+        Serial.println(hh1);
+        Serial.print("hh2 ");
+        Serial.println(hh2);
+        Serial.print("mm1 ");
+        Serial.println(mm1);
+        Serial.print("mm2 ");
+        Serial.println(mm2);                  
+        Serial.print("\nhours\n");
+        Serial.print(hh);
+        Serial.print("\nminutes\n");
+        Serial.print(mm);
+        hh1 = '#';
+        hh2 = '#';
+        mm1 = '#';
+        mm2 = '#';
+      }
+    }
+  }
 }
